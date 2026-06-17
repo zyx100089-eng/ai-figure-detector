@@ -1,0 +1,38 @@
+# Data
+dataset/real/**/*.png
+dataset/real/**/*.jpg
+dataset/fake_pixel/**/*.png
+dataset/fake_pixel/**/*.jpg
+dataset/fake_codegen/**/*.png
+dataset/fake_codegen/**/*.jpg
+*.pdf
+!paper/*.pdf
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ML artifacts
+*.pt
+*.pth
+*.onnx
+wandb/
+runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
