@@ -3,6 +3,7 @@ CNN-based detector: fine-tune a pretrained ResNet-18 for binary classification
 (real vs fake scientific figures).
 """
 
+import copy
 import os
 from pathlib import Path
 
@@ -147,7 +148,7 @@ def train_cnn(
 
         if val_metrics["f1"] > best_val_f1:
             best_val_f1 = val_metrics["f1"]
-            best_model_state = model.state_dict().copy()
+            best_model_state = copy.deepcopy(model.state_dict())
 
     if best_model_state:
         model.load_state_dict(best_model_state)

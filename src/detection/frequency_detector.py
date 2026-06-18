@@ -24,7 +24,7 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 def extract_frequency_features(image_path: str, size: int = 256) -> np.ndarray:
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
-        return np.zeros(48)
+        return np.zeros(32)
     img = cv2.resize(img, (size, size))
     img_float = img.astype(np.float32) / 255.0
 

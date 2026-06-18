@@ -85,13 +85,14 @@ def generate_sd_figures(
             continue
 
         try:
-            image = pipe(
-                prompt,
-                num_inference_steps=30,
-                guidance_scale=7.5,
-                height=512,
-                width=512,
-            ).images[0]
+            with torch.no_grad():
+                image = pipe(
+                    prompt,
+                    num_inference_steps=30,
+                    guidance_scale=7.5,
+                    height=512,
+                    width=512,
+                ).images[0]
 
             image.save(output_path)
             metadata.append({

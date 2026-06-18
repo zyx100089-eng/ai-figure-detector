@@ -5,7 +5,6 @@ Creates metadata.csv with labels and train/val/test splits.
 
 import json
 import os
-import random
 import shutil
 from pathlib import Path
 

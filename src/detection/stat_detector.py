@@ -28,7 +28,7 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 def extract_stat_features(image_path: str, size: int = 256) -> np.ndarray:
     img = cv2.imread(image_path)
     if img is None:
-        return np.zeros(60)
+        return np.zeros(37)
     img = cv2.resize(img, (size, size))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

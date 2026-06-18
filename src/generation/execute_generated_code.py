@@ -26,12 +26,19 @@ def execute_code(code: str, output_path: str, timeout: int = 30) -> bool:
             f.write(full_code)
 
         try:
+            safe_env = {
+                "PATH": os.environ.get("PATH", "/usr/bin:/usr/local/bin"),
+                "HOME": tmpdir,
+                "TMPDIR": tmpdir,
+                "MPLCONFIGDIR": tmpdir,
+            }
             result = subprocess.run(
                 ["python", script_path],
                 cwd=tmpdir,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
+                env=safe_env,
             )
 
             if result.returncode != 0:

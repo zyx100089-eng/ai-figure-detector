@@ -34,17 +34,35 @@ def setup_style():
     sns.set_style("whitegrid")
 
 
+def load_results() -> dict:
+    """Load results from JSON files. Falls back to hardcoded values if files missing."""
+    defaults = {
+        "Frequency + SVM": {"accuracy": 0.9084, "precision": 0.9412, "recall": 0.9195, "f1": 0.9302, "auc_roc": 0.9775},
+        "Statistical + RF": {"accuracy": 0.9725, "precision": 0.9556, "recall": 0.9885, "f1": 0.9718, "auc_roc": 0.9958},
+        "CNN (ResNet-18)": {"accuracy": 0.9847, "precision": 1.0000, "recall": 0.9770, "f1": 0.9884, "auc_roc": 1.0000},
+    }
+    files = {
+        "Frequency + SVM": RESULTS_DIR / "frequency_svm_results.json",
+        "Statistical + RF": RESULTS_DIR / "stat_rf_results.json",
+    }
+    results = {}
+    for name, default in defaults.items():
+        if name in files and files[name].exists():
+            with open(files[name]) as f:
+                data = json.load(f)
+            results[name] = {k: data[k] for k in ["accuracy", "precision", "recall", "f1", "auc_roc"] if k in data}
+        else:
+            results[name] = default
+    return results
+
+
 RESULTS_CODE_ONLY = {
     "Frequency + SVM": {"accuracy": 0.9450, "precision": 0.9467, "recall": 0.9726, "f1": 0.9595, "auc_roc": 0.9909},
     "Statistical + RF": {"accuracy": 0.9725, "precision": 0.9861, "recall": 0.9726, "f1": 0.9793, "auc_roc": 0.9975},
     "CNN (ResNet-18)": {"accuracy": 1.0000, "precision": 1.0000, "recall": 1.0000, "f1": 1.0000, "auc_roc": 1.0000},
 }
 
-RESULTS_MIXED = {
-    "Frequency + SVM": {"accuracy": 0.9084, "precision": 0.9412, "recall": 0.9195, "f1": 0.9302, "auc_roc": 0.9775},
-    "Statistical + RF": {"accuracy": 0.9725, "precision": 0.9556, "recall": 0.9885, "f1": 0.9718, "auc_roc": 0.9958},
-    "CNN (ResNet-18)": {"accuracy": 0.9847, "precision": 1.0000, "recall": 0.9770, "f1": 0.9884, "auc_roc": 1.0000},
-}
+RESULTS_MIXED = load_results()
 
 
 def plot_comparison_bars():

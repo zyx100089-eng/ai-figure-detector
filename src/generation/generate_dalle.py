@@ -89,7 +89,10 @@ def generate_dalle_figures(
                 with open(output_path, "wb") as f:
                     f.write(img_bytes)
             elif hasattr(image_data, 'url') and image_data.url:
-                img_response = requests.get(image_data.url, timeout=30)
+                if not image_data.url.startswith("https://"):
+                    print(f"  Skipping non-HTTPS URL for {figure_id}")
+                    continue
+                img_response = requests.get(image_data.url, timeout=30, allow_redirects=False)
                 img_response.raise_for_status()
                 with open(output_path, "wb") as f:
                     f.write(img_response.content)

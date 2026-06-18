@@ -12,9 +12,9 @@ import numpy as np
 import torch
 from PIL import Image
 from tqdm import tqdm
-
-Image.MAX_IMAGE_PIXELS = 200_000_000
 from transformers import CLIPModel, CLIPProcessor
+
+_ORIGINAL_MAX_PIXELS = Image.MAX_IMAGE_PIXELS
 
 DEFAULT_INPUT_DIR = os.path.join(
     os.path.dirname(__file__), "..", "..", "dataset", "real", "raw_extracted"
@@ -47,10 +47,13 @@ NON_CHART_LABELS = [
 def passes_heuristic_filter(image_path: str) -> bool:
     """Fast heuristic checks to filter obvious non-charts."""
     try:
+        Image.MAX_IMAGE_PIXELS = 200_000_000
         img = Image.open(image_path)
         w, h = img.size
     except Exception:
         return False
+    finally:
+        Image.MAX_IMAGE_PIXELS = _ORIGINAL_MAX_PIXELS
 
     if w < 250 or h < 200:
         return False
