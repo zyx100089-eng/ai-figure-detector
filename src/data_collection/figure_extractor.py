@@ -118,8 +118,11 @@ def get_extraction_stats(output_dir: str | None = None) -> dict:
     files = [f for f in os.listdir(output_dir) if f.endswith(".png")]
     sizes = []
     for f in files:
-        img = Image.open(os.path.join(output_dir, f))
-        sizes.append(img.size)
+        try:
+            img = Image.open(os.path.join(output_dir, f))
+            sizes.append(img.size)
+        except Exception:
+            continue
 
     widths = [s[0] for s in sizes]
     heights = [s[1] for s in sizes]

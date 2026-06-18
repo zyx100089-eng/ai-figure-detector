@@ -1,0 +1,15 @@
+
+\begin{table}[h]
+\centering
+\caption{Detection performance on the combined test set (code-level + pixel-level fakes).}
+\label{tab:results}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{Acc.} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+Frequency + SVM & 0.908 & 0.941 & 0.919 & 0.930 & 0.978 \\
+Statistical + RF & 0.973 & 0.956 & 0.989 & 0.972 & 0.996 \\
+CNN (ResNet-18) & 0.985 & 1.000 & 0.977 & 0.988 & 1.000 \\
+\bottomrule
+\end{tabular}
+\end{table}

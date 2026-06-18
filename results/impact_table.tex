@@ -1,0 +1,15 @@
+
+\begin{table}[h]
+\centering
+\caption{Impact of pixel-level fakes on detection F1 score.}
+\label{tab:impact}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Code Only} & \textbf{Code + Pixel} & \textbf{$\Delta$F1} \\
+\midrule
+Frequency + SVM & 0.960 & 0.930 & -0.029 \\
+Statistical + RF & 0.979 & 0.972 & -0.007 \\
+CNN (ResNet-18) & 1.000 & 0.988 & -0.012 \\
+\bottomrule
+\end{tabular}
+\end{table}
