@@ -28,7 +28,11 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 
 def get_cnn_probabilities(split: str, device: str) -> tuple[np.ndarray, np.ndarray]:
-    """Get CNN predicted probabilities for a split."""
+    """Get CNN predicted probabilities for a split.
+
+    Returns probs and labels ordered real-first then fake, matching
+    the order used by frequency_detector.load_split and stat_detector.load_split.
+    """
     _, eval_tf = get_transforms()
     from torchvision import datasets
     from torch.utils.data import DataLoader
@@ -51,7 +55,17 @@ def get_cnn_probabilities(split: str, device: str) -> tuple[np.ndarray, np.ndarr
             all_probs.extend(probs)
             all_labels.extend(labels.numpy())
 
-    return np.array(all_probs), np.array(all_labels)
+    all_probs = np.array(all_probs)
+    all_labels = np.array(all_labels)
+
+    # ImageFolder sorts alphabetically (fake=0 first, real=1 second),
+    # but freq/stat load_split iterates real first, then fake.
+    # Reorder to match: real (label=1) first, then fake (label=0).
+    real_mask = all_labels == 1
+    reordered_probs = np.concatenate([all_probs[real_mask], all_probs[~real_mask]])
+    reordered_labels = np.concatenate([all_labels[real_mask], all_labels[~real_mask]])
+
+    return reordered_probs, reordered_labels
 
 
 def train_ensemble():
