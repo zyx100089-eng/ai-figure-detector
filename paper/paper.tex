@@ -110,11 +110,27 @@ Table~\ref{tab:results} presents the detection performance of all three methods 
 Frequency + SVM & 0.908 & 0.941 & 0.920 & 0.930 & 0.978 \\
 Statistical + RF & 0.973 & 0.956 & 0.989 & 0.972 & 0.996 \\
 CNN (ResNet-18) & 0.985 & 1.000 & 0.977 & 0.988 & 1.000 \\
+\midrule
+\textbf{Ensemble} & \textbf{0.901} & \textbf{0.911} & \textbf{0.943} & \textbf{0.927} & \textbf{0.904} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The CNN detector achieves the best overall performance with 98.5\% accuracy and 98.8\% F1 score. The statistical feature approach performs comparably (97.2\% F1), while frequency analysis, though still effective, shows the lowest performance (93.0\% F1).
+The CNN detector achieves the best overall performance with 98.5\% accuracy and 98.8\% F1 score. The statistical feature approach performs comparably (97.2\% F1), while frequency analysis, though still effective, shows the lowest performance (93.0\% F1). The ensemble combines all three methods via weighted soft voting (CNN: 0.3, Stat: 0.2, Freq: 0.5), achieving 92.7\% F1. Figure~\ref{fig:confusion} shows per-detector confusion matrices and Figure~\ref{fig:roc} presents ROC curves.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{../results/figures/confusion_matrices.png}
+\caption{Confusion matrices for each detector and the ensemble on the test set.}
+\label{fig:confusion}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{../results/figures/roc_curves.png}
+\caption{ROC curves comparing detector discrimination ability.}
+\label{fig:roc}
+\end{figure}
 
 \subsection{Impact of Generation Method}
 
@@ -165,7 +181,7 @@ The Random Forest feature importance analysis reveals that the most discriminati
 
 \textbf{Adversarial Robustness.} We do not evaluate adversarial attacks where a generator is specifically optimized to evade our detectors. This cat-and-mouse dynamic is an important direction for future work.
 
-\textbf{Future Work.} We identify several directions: (1) scaling the dataset with more generation models, (2) per-chart-type analysis of detection difficulty, (3) ensemble methods combining all three detectors, (4) cross-domain evaluation on figures from biology, physics, and chemistry papers, and (5) integration with existing scientific integrity tools.
+\textbf{Future Work.} We identify several directions: (1) scaling the dataset with more generation models, (2) per-chart-type analysis of detection difficulty, (3) cross-domain evaluation on figures from biology, physics, and chemistry papers, and (4) integration with existing scientific integrity tools.
 
 \section{Conclusion}
 

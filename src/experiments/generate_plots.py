@@ -277,6 +277,77 @@ def generate_results_table():
     print("Saved impact_table.tex")
 
 
+def plot_confusion_matrices():
+    """Plot confusion matrices for all detectors using ensemble results if available."""
+    ensemble_path = RESULTS_DIR / "ensemble_results.json"
+    if not ensemble_path.exists():
+        print("Skipping confusion matrices (run ensemble_detector.py first)")
+        return
+
+    with open(ensemble_path) as f:
+        data = json.load(f)
+
+    labels = np.array(data["labels"])
+    detector_probs = {
+        "CNN (ResNet-18)": np.array(data["component_probs"]["cnn"]),
+        "Statistical + RF": np.array(data["component_probs"]["stat"]),
+        "Frequency + SVM": np.array(data["component_probs"]["freq"]),
+    }
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    class_names = ["Fake", "Real"]
+
+    for ax, (name, probs) in zip(axes, detector_probs.items()):
+        preds = (probs >= 0.5).astype(int)
+        cm = confusion_matrix(labels, preds)
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax,
+                    xticklabels=class_names, yticklabels=class_names)
+        ax.set_title(name)
+        ax.set_ylabel("True Label")
+        ax.set_xlabel("Predicted Label")
+
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / "confusion_matrices.png")
+    plt.close()
+    print("Saved confusion_matrices.png")
+
+
+def plot_roc_curves():
+    """Plot ROC curves for all detectors on one chart."""
+    ensemble_path = RESULTS_DIR / "ensemble_results.json"
+    if not ensemble_path.exists():
+        print("Skipping ROC curves (run ensemble_detector.py first)")
+        return
+
+    with open(ensemble_path) as f:
+        data = json.load(f)
+
+    labels = np.array(data["labels"])
+    detectors = {
+        "CNN (ResNet-18)": np.array(data["component_probs"]["cnn"]),
+        "Statistical + RF": np.array(data["component_probs"]["stat"]),
+        "Frequency + SVM": np.array(data["component_probs"]["freq"]),
+    }
+    colors = ["#2196F3", "#4CAF50", "#FF9800"]
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+    for (name, probs), color in zip(detectors.items(), colors):
+        fpr, tpr, _ = roc_curve(labels, probs)
+        roc_auc = auc(fpr, tpr)
+        ax.plot(fpr, tpr, color=color, lw=2, label=f"{name} (AUC={roc_auc:.3f})")
+
+    ax.plot([0, 1], [0, 1], "k--", lw=1, alpha=0.5)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("ROC Curves — All Detectors")
+    ax.legend(loc="lower right")
+    ax.set_xlim([-0.02, 1.02])
+    ax.set_ylim([-0.02, 1.02])
+    plt.savefig(FIGURES_DIR / "roc_curves.png")
+    plt.close()
+    print("Saved roc_curves.png")
+
+
 if __name__ == "__main__":
     setup_style()
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
@@ -285,5 +356,7 @@ if __name__ == "__main__":
     plot_dataset_composition()
     plot_training_curves()
     plot_method_overview()
+    plot_confusion_matrices()
+    plot_roc_curves()
     generate_results_table()
     print("\nAll figures and tables generated!")
