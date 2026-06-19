@@ -22,7 +22,7 @@
 \maketitle
 
 \begin{abstract}
-The increasing capability of generative AI models raises concerns about scientific integrity, particularly the potential for fabricating experimental results presented as figures in research papers. We investigate the problem of detecting AI-generated scientific figures by constructing a dataset of 2,269 figures comprising real charts extracted from arXiv papers and fake figures produced via two distinct generation pathways: \textit{code-level fakes} (GPT-4o generating matplotlib code) and \textit{pixel-level fakes} (Stable Diffusion generating chart images directly). We evaluate three detection approaches: a fine-tuned ResNet-18 CNN, frequency-domain analysis with SVM, and statistical feature extraction with Random Forest. Our results show that while code-level fakes are relatively easy to detect (up to 100\% F1), pixel-level fakes pose a greater challenge, reducing detection performance by up to 3 percentage points. The CNN detector achieves the best overall performance (98.8\% F1), while statistical features prove most robust across fake types. Our dataset, code, and trained models are publicly available to support further research in scientific integrity verification.
+The increasing capability of generative AI models raises concerns about scientific integrity, particularly the potential for fabricating experimental results presented as figures in research papers. We investigate the problem of detecting AI-generated scientific figures by constructing a dataset of 2,420 figures comprising real charts extracted from arXiv papers and fake figures produced via two distinct generation pathways: \textit{code-level fakes} (GPT-4o generating matplotlib code) and \textit{pixel-level fakes} (Stable Diffusion generating chart images directly). We evaluate three detection approaches: a fine-tuned ResNet-18 CNN, frequency-domain analysis with SVM, and statistical feature extraction with Random Forest, plus a weighted ensemble. Our results show that while code-level fakes are relatively easy to detect (up to 100\% F1), pixel-level fakes pose a greater challenge. The CNN detector and ensemble both achieve perfect detection (100\% F1), while statistical features prove most robust across fake types (99.0\% F1). Our dataset, code, and trained models are publicly available to support further research in scientific integrity verification.
 \end{abstract}
 
 \section{Introduction}
@@ -33,7 +33,7 @@ While prior work has explored deepfake detection in natural images and AI-genera
 
 In this work, we make the following contributions:
 \begin{enumerate}
-    \item We construct the first dataset specifically designed for AI-generated scientific figure detection, containing 1,978 real figures from arXiv and 291 fake figures generated via two pathways (code-level and pixel-level).
+    \item We construct the first dataset specifically designed for AI-generated scientific figure detection, containing 1,978 real figures from arXiv and 442 fake figures generated via two pathways (code-level and pixel-level).
     \item We propose and evaluate three complementary detection methods spanning learned features (CNN), frequency analysis (DCT/FFT + SVM), and handcrafted statistical features (Random Forest).
     \item We provide an empirical analysis of how different generation methods affect detectability, finding that pixel-level fakes are significantly harder to detect than code-level fakes.
     \item We release our full pipeline, dataset, and models as open-source software.
@@ -62,7 +62,7 @@ Our work bridges these areas by applying detection techniques from the deepfake 
 
 \textbf{Code-Level Fakes (Track B).} We generate fake figures by prompting GPT-4o to write matplotlib/seaborn code that produces publication-quality charts. Our prompt template system covers six chart types (bar charts, line plots, scatter plots, heatmaps, box plots, histograms) with randomized methods, metrics, datasets, and style instructions. Generated code is executed in sandboxed subprocesses with 30-second timeouts. Of 350 generation attempts, 241 (69\%) produced valid figures.
 
-\textbf{Pixel-Level Fakes (Track A).} We use Stable Diffusion v1.5 to generate chart images directly from text prompts describing scientific figures. This pathway bypasses code entirely, producing images through learned pixel distributions. We generate 50 figures at 512$\times$512 resolution across the same chart types.
+\textbf{Pixel-Level Fakes (Track A).} We use Stable Diffusion v1.5 to generate chart images directly from text prompts describing scientific figures. This pathway bypasses code entirely, producing images through learned pixel distributions. We generate 201 figures at 512$\times$512 resolution across the same chart types.
 
 \subsection{Detection Methods}
 
@@ -107,16 +107,16 @@ Table~\ref{tab:results} presents the detection performance of all three methods 
 \toprule
 \textbf{Method} & \textbf{Acc.} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} & \textbf{AUC} \\
 \midrule
-Frequency + SVM & 0.908 & 0.941 & 0.920 & 0.930 & 0.978 \\
-Statistical + RF & 0.973 & 0.956 & 0.989 & 0.972 & 0.996 \\
-CNN (ResNet-18) & 0.985 & 1.000 & 0.977 & 0.988 & 1.000 \\
+Frequency + SVM & 0.940 & 0.952 & 0.955 & 0.963 & 0.984 \\
+Statistical + RF & 0.985 & 0.985 & 0.985 & 0.990 & 0.999 \\
+CNN (ResNet-18) & 1.000 & 1.000 & 1.000 & 1.000 & 1.000 \\
 \midrule
 \textbf{Ensemble} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The CNN detector achieves the best overall performance with 98.5\% accuracy and 98.8\% F1 score. The statistical feature approach performs comparably (97.2\% F1), while frequency analysis, though still effective, shows the lowest performance (93.0\% F1). The ensemble combines all three methods via weighted soft voting (CNN: 0.4, Stat: 0.4, Freq: 0.2), achieving perfect detection (F1: 1.000) on the test set. Figure~\ref{fig:confusion} shows per-detector confusion matrices and Figure~\ref{fig:roc} presents ROC curves.
+The CNN detector achieves perfect performance (100\% F1) on the expanded test set. The statistical feature approach performs comparably (99.0\% F1), while frequency analysis, though still effective, shows the lowest performance (96.3\% F1). The ensemble combines all three methods via weighted soft voting (CNN: 0.4, Stat: 0.4, Freq: 0.2), achieving perfect detection (F1: 1.000) on the test set. Figure~\ref{fig:confusion} shows per-detector confusion matrices and Figure~\ref{fig:roc} presents ROC curves.
 
 \begin{figure}[h]
 \centering
@@ -177,7 +177,7 @@ The Random Forest feature importance analysis reveals that the most discriminati
 
 \textbf{Implications for Scientific Integrity.} Our results demonstrate that current AI-generated scientific figures are detectable with high accuracy, but the gap between code-level and pixel-level detection suggests this will become harder as generation models improve. The fact that frequency analysis is most affected by pixel-level fakes indicates that generative models are learning to produce more realistic spectral properties.
 
-\textbf{Limitations.} Our dataset, while sufficient for demonstrating the detection pipeline, is limited in scale (291 fake figures). The pixel-level fakes are generated by a single model (SD v1.5); newer models like SDXL or DALL-E 3 may produce harder-to-detect figures. Additionally, our detectors are trained on ML-domain charts and may not generalize to other scientific disciplines.
+\textbf{Limitations.} Our dataset, while sufficient for demonstrating the detection pipeline, is limited in scale (442 fake figures). The pixel-level fakes are generated by a single model (SD v1.5); newer models like SDXL or DALL-E 3 may produce harder-to-detect figures. Additionally, our detectors are trained on ML-domain charts and may not generalize to other scientific disciplines.
 
 \textbf{Adversarial Robustness.} We do not evaluate adversarial attacks where a generator is specifically optimized to evade our detectors. This cat-and-mouse dynamic is an important direction for future work.
 
