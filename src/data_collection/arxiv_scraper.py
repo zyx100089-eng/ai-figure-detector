@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 import requests
 from tqdm import tqdm
 
-ARXIV_API_URL = "http://export.arxiv.org/api/query"
+ARXIV_API_URL = "https://export.arxiv.org/api/query"
 PDF_BASE_URL = "https://arxiv.org/pdf/"
 
 CATEGORIES = ["cs.LG", "cs.CV", "stat.ML"]

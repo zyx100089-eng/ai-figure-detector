@@ -5,6 +5,7 @@ Runs each script in a subprocess with a timeout to prevent hangs.
 
 import os
 import subprocess
+import sys
 import tempfile
 import shutil
 from pathlib import Path
@@ -33,7 +34,7 @@ def execute_code(code: str, output_path: str, timeout: int = 30) -> bool:
                 "MPLCONFIGDIR": tmpdir,
             }
             result = subprocess.run(
-                ["python", script_path],
+                [sys.executable, script_path],
                 cwd=tmpdir,
                 capture_output=True,
                 text=True,

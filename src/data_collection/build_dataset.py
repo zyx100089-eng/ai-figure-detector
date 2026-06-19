@@ -160,6 +160,8 @@ def build_dataset(
 
     if copy_files:
         print("\nCopying files to split directories...")
+        if OUTPUT_DIR.exists():
+            shutil.rmtree(OUTPUT_DIR)
         for split in ["train", "val", "test"]:
             for label in ["real", "fake"]:
                 split_dir = OUTPUT_DIR / split / label

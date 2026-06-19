@@ -119,8 +119,8 @@ def get_extraction_stats(output_dir: str | None = None) -> dict:
     sizes = []
     for f in files:
         try:
-            img = Image.open(os.path.join(output_dir, f))
-            sizes.append(img.size)
+            with Image.open(os.path.join(output_dir, f)) as img:
+                sizes.append(img.size)
         except Exception:
             continue
 

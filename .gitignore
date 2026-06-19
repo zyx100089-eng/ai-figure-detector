@@ -1,3 +1,6 @@
+# Secrets
+.env
+
 # Data
 dataset/real/**/*.png
 dataset/real/**/*.jpg

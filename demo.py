@@ -8,6 +8,7 @@ Usage:
 
 import argparse
 import json
+import pickle
 import sys
 from pathlib import Path
 
@@ -15,11 +16,14 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from torchvision import transforms
 
 from src.detection.cnn_detector import build_model
-from src.detection.frequency_detector import extract_frequency_features
-from src.detection.stat_detector import extract_stat_features
+from src.detection.frequency_detector import extract_frequency_features, load_split as load_freq_split
+from src.detection.stat_detector import extract_stat_features, load_split as load_stat_split
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 RESULTS_DIR = PROJECT_ROOT / "results"
@@ -47,7 +51,6 @@ def predict_cnn(image_path: str, device: str = "cpu") -> tuple[str, float]:
         output = model(tensor)
         probs = torch.softmax(output, dim=1)[0]
 
-    # ImageFolder sorts: fake=0, real=1
     real_prob = probs[1].item()
     label = "REAL" if real_prob >= 0.5 else "FAKE"
     confidence = real_prob if label == "REAL" else 1 - real_prob
@@ -55,20 +58,39 @@ def predict_cnn(image_path: str, device: str = "cpu") -> tuple[str, float]:
 
 
 def predict_frequency(image_path: str) -> tuple[str, float]:
-    features = extract_frequency_features(image_path)
-    energy_ratio = features[12:16].mean() / (features[0:4].mean() + 1e-10)
-    fake_score = min(1.0, max(0.0, energy_ratio * 2))
-    label = "FAKE" if fake_score > 0.5 else "REAL"
-    return label, max(fake_score, 1 - fake_score)
+    features = extract_frequency_features(image_path).reshape(1, -1)
+
+    X_train, y_train = load_freq_split("train")
+    X_val, y_val = load_freq_split("val")
+    scaler = StandardScaler()
+    scaler.fit(np.vstack([X_train, X_val]))
+    features = scaler.transform(features)
+
+    svm = SVC(C=10.0, gamma="scale", kernel="rbf", probability=True)
+    svm.fit(scaler.transform(np.vstack([X_train, X_val])), np.concatenate([y_train, y_val]))
+
+    prob = svm.predict_proba(features)[0, 1]
+    label = "REAL" if prob >= 0.5 else "FAKE"
+    confidence = prob if label == "REAL" else 1 - prob
+    return label, confidence
 
 
 def predict_stat(image_path: str) -> tuple[str, float]:
-    features = extract_stat_features(image_path)
-    color_diversity = features[15] if len(features) > 15 else 0.5
-    edge_density = features[16] if len(features) > 16 else 0.5
-    heuristic_score = (color_diversity + edge_density) / 2
-    label = "REAL" if heuristic_score > 0.3 else "FAKE"
-    return label, 0.7
+    features = extract_stat_features(image_path).reshape(1, -1)
+
+    X_train, y_train = load_stat_split("train")
+    X_val, y_val = load_stat_split("val")
+    scaler = StandardScaler()
+    scaler.fit(np.vstack([X_train, X_val]))
+    features = scaler.transform(features)
+
+    rf = RandomForestClassifier(n_estimators=200, max_depth=20, random_state=42, n_jobs=-1)
+    rf.fit(scaler.transform(np.vstack([X_train, X_val])), np.concatenate([y_train, y_val]))
+
+    prob = rf.predict_proba(features)[0, 1]
+    label = "REAL" if prob >= 0.5 else "FAKE"
+    confidence = prob if label == "REAL" else 1 - prob
+    return label, confidence
 
 
 def main():
@@ -85,8 +107,8 @@ def main():
 
     methods = {
         "cnn": ("CNN (ResNet-18)", predict_cnn),
-        "frequency": ("Frequency Analysis", lambda p: predict_frequency(p)),
-        "stat": ("Statistical Analysis", lambda p: predict_stat(p)),
+        "frequency": ("Frequency Analysis", predict_frequency),
+        "stat": ("Statistical Analysis", predict_stat),
     }
 
     if args.method == "all":
@@ -96,10 +118,7 @@ def main():
 
     results = {}
     for key, (name, func) in to_run.items():
-        if key == "cnn":
-            label, conf = func(args.image)
-        else:
-            label, conf = func(args.image)
+        label, conf = func(args.image)
         results[key] = (label, conf)
         print(f"  {name:25s}  {label:4s}  (confidence: {conf:.1%})")
 

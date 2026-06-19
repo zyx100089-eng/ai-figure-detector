@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
@@ -88,7 +89,8 @@ def train_ensemble():
     X_val_freq = freq_scaler.transform(X_val_freq)
     X_test_freq = freq_scaler.transform(X_test_freq)
 
-    svm = SVC(C=10.0, gamma="scale", kernel="rbf", probability=True)
+    base_svm = SVC(C=10.0, gamma="scale", kernel="rbf")
+    svm = CalibratedClassifierCV(base_svm, ensemble=False)
     svm.fit(np.vstack([X_train_freq, X_val_freq]), np.concatenate([y_train, y_val]))
     freq_probs = svm.predict_proba(X_test_freq)[:, 1]
     print(f"   F1: {f1_score(y_test, (freq_probs >= 0.5).astype(int)):.3f}")
